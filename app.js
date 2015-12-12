@@ -31,8 +31,6 @@ app.get(config.url, function (req, res) {
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-
-
 io.use(function(socket, next){
     console.log("userInfo: ", socket.handshake.query);
     // return the result of next() to accept the connection.
@@ -50,56 +48,6 @@ io.on('connection', function(socket){
     });
 });
 
-
-
 http.listen(3000, function(){
     console.log('listening on *:3000');
 });
-
-
-function handleSocket(user, message) {
-    var data = JSON.parse(message);
-    data.id = user.id;
-    data.user = user.un;
-    data.type = s.escapeHTML(data.type);
-    data.message = s.escapeHTML(data.message);
-    data.mid = (Math.random() + 1).toString(36).substr(2, 5);
-
-    if (data.type == "open") {
-
-    } else {
-
-    }
-
-    utils.sendToAll(channelId, clients, data);
-}
-
-
-function onError(error) {
-    if(error.syscall !== 'listen') {
-        throw error;
-    }
-
-    var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
-
-    switch(error.code) {
-        case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
-
-        case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
-
-        default:
-            throw error;
-    }
-}
-
-function onListening() {
-    var addr = server.address();
-    var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-    log('start', 'Listening at ' + bind);
-}
