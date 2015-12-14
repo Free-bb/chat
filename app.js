@@ -31,23 +31,18 @@ io.use(function(socket, next){
         next(new Error('Authentication error'));
     }
     clients[userInformation.uid] = userInformation;
+    return next();
 });
 
 
-
-
-
-
-
-
-
-
 io.on('connection', function(socket){
-    socket.on('newmessage', function(msg){
+    socket.on('newmessage', function(content){
+        msg = JSON.parse(content);
+
         channelName = 'message' + msg.channelId;
         io.emit(channelName, JSON.stringify({
-            'msg': msg,
-            'user': user
+            'msg': msg.message,
+            'user': clients[msg.user.uid]
         }));
     });
 });
