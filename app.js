@@ -23,7 +23,7 @@ app.get(config.url, function (req, res) {
 });
 
 var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var io   = require('socket.io')(http);
 
 io.use(function(socket, next){
     userInformation = JSON.parse(socket.handshake.query.userInfo);
@@ -34,11 +34,31 @@ io.use(function(socket, next){
 });
 
 
+
+
+
+
+
+
+
+
 io.on('connection', function(socket){
-    socket.on('message', function(msg){
-        io.emit('message', msg);
+    socket.on('newmessage', function(msg){
+        channelName = 'message' + msg.channelId;
+        io.emit(channelName, JSON.stringify({
+            'msg': msg,
+            'user': user
+        }));
     });
 });
+
+
+
+
+
+
+
+
 
 http.listen(3000, function(){
     console.log('listening on *:3000');

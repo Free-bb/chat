@@ -11,11 +11,10 @@ var userInfo = {
 
 var socket = io('', { query: "userInfo=" + JSON.stringify(userInfo) });
 
-socket.on('message', function(content){
+socket.on('newmessage', function(content){
     data = JSON.parse(content);
     addMessage(data.type, data.user, data.message)
 });
-
 
 /* Functions */
 function sendSocket(value, type, extra) {
