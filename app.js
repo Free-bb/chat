@@ -40,12 +40,18 @@ io.on('connection', function(socket){
     socket.on('newmessage', function(content){
         msg = JSON.parse(content);
 
-        channelName = 'message' + msg.channelId;
+        channelId = msg.channelId;
+        channelName = 'message' + channelId;
         io.emit(channelName, JSON.stringify({
             'msg': msg.message,
             'user': clients[msg.user.uid]
         }));
-        messages[msg.channelId].push(msg);
+
+        if (!messages[channelId]) {
+            messages[channelId] = [];
+        }
+
+        messages[channelId].push([msg]);
     });
 
     socket.on('init', function(channelId){
