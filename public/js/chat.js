@@ -41,6 +41,10 @@ function addMessage(message, user) {
     $('#chatList').animate({scrollTop: $('#chatList').prop('scrollHeight')}, 500);
 }
 
+function init() {
+    socket.emit('init', userInfo.channelId);
+}
+
 /* Binds */
 $(document).ready(function() {
     $('#btn-chat').bind('click', function() {
@@ -52,4 +56,6 @@ $(document).ready(function() {
             handleInput();
         }
     });
+
+    init();
 });

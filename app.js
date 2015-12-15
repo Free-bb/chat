@@ -15,6 +15,7 @@ app.set('view engine', 'ejs');
 
 /* Variables */
 var clients = [];
+var messages = [];
 
 /* Routes */
 app.use(config.url, express.static(path.join(__dirname, 'public')));
@@ -44,6 +45,18 @@ io.on('connection', function(socket){
             'msg': msg.message,
             'user': clients[msg.user.uid]
         }));
+        messages[msg.channelId].push(msg);
+    });
+
+    socket.on('init', function(channelId){
+        channelName = 'message' + channelId;
+
+        if (messages[channelId]) {
+            lastMessages = messages[channelId].slice(Math.max(messages[channelId].length - 5, 1));
+            for (var i = 0, len = lastMessages.length; i < len; i++) {
+                io.emit(channelName, lastMessages[i]);
+            }
+        }
     });
 });
 
