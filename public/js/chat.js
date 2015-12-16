@@ -1,7 +1,72 @@
-var userInfo;
-var blop = new Audio('sounds/blop.wav');
-var channelId;
-var regex = /(&zwj;|&nbsp;)/g;
+FreebbChat = {
+    userInfo: [],
+    chatInputStringSelector: '#btn-chat-input',
+    chatBtnStringSelector: '#btn-chat',
+    chatListStringSelector: '#chatList',
+    socket: null,
+    regex: /(&zwj;|&nbsp;)/g,
+    blop: new Audio('sounds/blop.wav'),
+
+    addMessage: function(message, user) {
+        _this = this;
+        content  = '<div class="media">';
+        content += '<div class="media-left pull-left"><a href="#"><img class="media-object" src="' + user.avatar + '" alt="" style="width:24px;height:24px;"></a></div>';
+        content += '<div class="media-body">' + message + '</div>';
+        content += '</div>';
+
+        _this.blop.play();
+        $(_this.chatListStringSelector).append(content);
+        $(_this.chatListStringSelector).animate({scrollTop: $(_this.chatListStringSelector).prop('scrollHeight')}, 500);
+    },
+
+    handleInput: function() {
+        _this = this;
+        var msg = $(_this.chatInputStringSelector).val().replace(_this.regex, ' ').trim();
+
+        _this.socket.emit('newmessage', JSON.stringify({
+            user: _this.userInfo,
+            msg: msg
+        }));
+        $(_this.chatInputStringSelector).val('');
+    },
+
+    bindInput: function(){
+        _this = this;
+        $(_this.chatBtnStringSelector).bind('click', function() {
+            _this.handleInput();
+        });
+
+        $(_this.chatInputStringSelector).keypress(function(e) {
+            if(e.which == 13) {
+                _this.handleInput();
+            }
+        });
+    },
+
+    initSocket: function(){
+        _this = this;
+        _this.socket = io('', { query: "userInfo=" + JSON.stringify(_this.userInfo) });
+
+        _this.socket.on('message' + userInfo.channelId, function(content){
+            data = JSON.parse(content);
+            _this.addMessage(data.msg, data.user);
+        });
+
+        _this.socket.on('init' + userInfo.uid, function(content){
+            data = JSON.parse(content);
+            _this.addMessage(data.msg, data.user);
+        });
+    },
+
+    init: function(userInfo) {
+        _this = this;
+        _this.userInfo = userInfo;
+
+        _this.bindInput();
+        _this.initSocket();
+        _this.socket.emit('init', JSON.stringify(userInfo));
+    }
+}
 
 var userInfo = {
     username: 'Thomas',
@@ -10,55 +75,6 @@ var userInfo = {
     channelId: 1
 };
 
-var socket = io('', { query: "userInfo=" + JSON.stringify(userInfo) });
-
-socket.on('message' + userInfo.channelId, function(content){
-    data = JSON.parse(content);
-    addMessage(data.msg, data.user);
-});
-
-socket.on('init' + userInfo.uid, function(content){
-    data = JSON.parse(content);
-    addMessage(data.msg, data.user);
-});
-
-/* Functions */
-function handleInput() {
-    var msg = $('#btn-chat-input').val().replace(regex, ' ').trim();
-
-    socket.emit('newmessage', JSON.stringify({
-        user: userInfo,
-        msg: msg
-    }));
-    $('#btn-chat-input').val('');
-}
-
-function addMessage(message, user) {
-    content  = '<div class="media">';
-    content += '<div class="media-left pull-left"><a href="#"><img class="media-object" src="' + user.avatar + '" alt="" style="width:24px;height:24px;"></a></div>';
-    content += '<div class="media-body">' + message + '</div>';
-    content += '</div>';
-
-    blop.play();
-    $('#chatList').append(content);
-    $('#chatList').animate({scrollTop: $('#chatList').prop('scrollHeight')}, 500);
-}
-
-function init() {
-    socket.emit('init', JSON.stringify(userInfo));
-}
-
-/* Binds */
 $(document).ready(function() {
-    $('#btn-chat').bind('click', function() {
-        handleInput();
-    });
-
-    $('#btn-chat-input').keypress(function(e) {
-        if(e.which == 13) {
-            handleInput();
-        }
-    });
-
-    init();
+    FreebbChat.init(userInfo);
 });
