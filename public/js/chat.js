@@ -55,6 +55,12 @@ FreebbChat = {
         });
     },
 
+    blockChat: function(){
+        _this = this;
+        $(_this.chatInputStringSelector).addClass('disabled').attr('disabled', 'disabled');
+        $(_this.chatBtnStringSelector).addClass('disabled');
+    },
+
     initSocket: function(){
         _this = this;
         _this.socket = io('', { query: "userInfo=" + JSON.stringify(_this.userInfo) });
@@ -73,6 +79,10 @@ FreebbChat = {
     init: function(userInfo) {
         _this = this;
         _this.userInfo = userInfo;
+
+        if (!userInfo.uid) {
+            _this.blockChat();
+        }
 
         _this.bindInput();
         _this.initSocket();

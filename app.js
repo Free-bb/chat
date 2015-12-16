@@ -6,10 +6,11 @@ var utils = require('./lib/utils.js');
 var path = require('path');
 var pack = require('./package.json');
 var log = require('./lib/log.js');
+var port = 3000;
 
 /* Express */
 var app = express();
-app.set('port', 3000);
+app.set('port', port);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -72,6 +73,6 @@ io.on('connection', function(socket){
 
 
 
-http.listen(3000, function(){
-    console.log('listening on *:80');
+http.listen(port, function(){
+    console.log('listening on *:' + port);
 });
