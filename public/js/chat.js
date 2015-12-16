@@ -1,3 +1,8 @@
+/* Config */
+emojione.ascii = true;
+emojione.imageType = 'png';
+emojione.unicodeAlt = false;
+
 FreebbChat = {
     userInfo: [],
     chatInputStringSelector: '#btn-chat-input',
@@ -9,6 +14,9 @@ FreebbChat = {
 
     addMessage: function(message, user) {
         _this = this;
+
+        message = emojione.shortnameToImage(message);
+
         content  = '<div class="media">';
         content += '<div class="media-left pull-left"><a href="#"><img class="media-object" src="' + user.avatar + '" alt="" style="width:24px;height:24px;"></a></div>';
         content += '<div class="media-body">' + message + '</div>';
