@@ -14,7 +14,11 @@ FreebbChat = {
         content += '<div class="media-body">' + message + '</div>';
         content += '</div>';
 
-        _this.blop.play();
+        // remove notification sound if send is current user
+        if (user.uid != _this.userInfo.uid) {
+            _this.blop.play();
+        }
+
         $(_this.chatListStringSelector).append(content);
         $(_this.chatListStringSelector).animate({scrollTop: $(_this.chatListStringSelector).prop('scrollHeight')}, 500);
     },
