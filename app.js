@@ -40,27 +40,28 @@ io.on('connection', function(socket){
     socket.on('newmessage', function(content){
         msg = JSON.parse(content);
 
-        channelId = msg.channelId;
+        channelId = msg.user.channelId;
         channelName = 'message' + channelId;
         io.emit(channelName, JSON.stringify({
-            'msg': msg.message,
+            'msg': msg.msg,
             'user': clients[msg.user.uid]
         }));
-
+        // inti empty channel
         if (!messages[channelId]) {
             messages[channelId] = [];
         }
-
         messages[channelId].push([msg]);
     });
 
-    socket.on('init', function(channelId){
-        channelName = 'message' + channelId;
+    socket.on('init', function(content){
+        infoInit    = JSON.parse(content);
+        channelName = 'init' + infoInit.uid;
+        channelId   = infoInit.channelId;
 
         if (messages[channelId]) {
             lastMessages = messages[channelId].slice(Math.max(messages[channelId].length - 5, 1));
             for (var i = 0, len = lastMessages.length; i < len; i++) {
-                io.emit(channelName, lastMessages[i]);
+                io.emit(channelName, JSON.stringify(lastMessages[i][0]));
             }
         }
     });

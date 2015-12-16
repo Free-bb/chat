@@ -14,7 +14,11 @@ var socket = io('', { query: "userInfo=" + JSON.stringify(userInfo) });
 
 socket.on('message' + userInfo.channelId, function(content){
     data = JSON.parse(content);
-    console.log(data);
+    addMessage(data.msg, data.user);
+});
+
+socket.on('init' + userInfo.uid, function(content){
+    data = JSON.parse(content);
     addMessage(data.msg, data.user);
 });
 
@@ -23,9 +27,8 @@ function handleInput() {
     var msg = $('#btn-chat-input').val().replace(regex, ' ').trim();
 
     socket.emit('newmessage', JSON.stringify({
-        channelId: userInfo.channelId,
         user: userInfo,
-        message: msg
+        msg: msg
     }));
     $('#btn-chat-input').val('');
 }
@@ -42,7 +45,7 @@ function addMessage(message, user) {
 }
 
 function init() {
-    socket.emit('init', userInfo.channelId);
+    socket.emit('init', JSON.stringify(userInfo));
 }
 
 /* Binds */
