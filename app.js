@@ -39,6 +39,9 @@ io.use(function(socket, next){
 io.on('connection', function(socket){
     socket.on('newmessage', function(content){
         msg = JSON.parse(content);
+        msg.msg = s.escapeHTML(msg.msg);
+        msg.user.id = s.escapeHTML(msg.user.id);
+        msg.user.channelId = s.escapeHTML(msg.user.channelId);
 
         channelId = msg.user.channelId;
         channelName = 'message' + channelId;
