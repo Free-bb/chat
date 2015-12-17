@@ -1,12 +1,21 @@
 /* Requires */
-var s = require('underscore.string');
+var s       = require('underscore.string');
 var express = require('express');
-var config = require('./config.json');
-var utils = require('./lib/utils.js');
-var path = require('path');
-var pack = require('./package.json');
-var log = require('./lib/log.js');
-var port = 3000;
+var config  = require('./config.json');
+var utils   = require('./lib/utils.js');
+var path    = require('path');
+var pack    = require('./package.json');
+var log     = require('./lib/log.js');
+var mysql   = require('mysql');
+var port    = 3000;
+
+/* MySQL */
+var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'me',
+    password : 'secret',
+    database : 'my_db'
+});
 
 /* Express */
 var app = express();
@@ -71,6 +80,18 @@ io.on('connection', function(socket){
     });
 });
 
+function getMessages(channelId){
+    connection.connect();
+    connection.query('SELECT * FROM `books` WHERE `author` = "David"', function (error, results, fields) {
+      // error will be an Error if one occurred during the query
+      // results will contain the results of the query
+      // fields will contain information about the returned results fields (if any)
+    });
+}
+
+function saveMessage(){
+
+}
 
 
 http.listen(port, function(){
