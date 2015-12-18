@@ -11,19 +11,23 @@ FreebbChat = {
     socket: null,
     regex: /(&zwj;|&nbsp;)/g,
     blop: new Audio('sounds/blop.wav'),
+    playSound: true,
 
-    addMessage: function(message, user) {
+    addMessage: function(message, user, time) {
         _this = this;
 
         message = emojione.shortnameToImage(message);
 
         content  = '<div class="media">';
         content += '<div class="media-left pull-left"><a href="#"><img class="media-object" src="' + user.avatar + '" alt="" style="width:24px;height:24px;"></a></div>';
-        content += '<div class="media-body">' + message + '</div>';
+        content += '<div class="media-body">';
+        content += '<span class="label label-default pull-right">' + time + '</span>';
+        content += message;
+        content += '</div>';
         content += '</div>';
 
         // remove notification sound if send is current user
-        if (user.uid != _this.userInfo.uid) {
+        if (user.uid != _this.userInfo.uid && _this.playSound) {
             _this.blop.play();
         }
 
@@ -67,7 +71,7 @@ FreebbChat = {
 
         _this.socket.on('message' + userInfo.channelId, function(content){
             data = JSON.parse(content);
-            _this.addMessage(data.msg, data.user);
+            _this.addMessage(data.msg, data.user, data.time);
         });
 
         _this.socket.on('init' + userInfo.uid, function(content){

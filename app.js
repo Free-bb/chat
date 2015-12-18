@@ -73,14 +73,12 @@ io.on('connection', function(socket){
 
 function getMessages(channelId, channelName){
     connection.query('SELECT channel_id, user_id, message, time FROM `sf_chat` WHERE `channel_id` = "'+ channelId +'" ORDER BY time DESC LIMIT 0, 10', function (error, results, fields) {
-        console.log(results.length);
+        results = results.reverse();
         for (var i = 0, len = results.length; i < len; i++) {
-            // console.log('emit to ' + channelName);
-            // console.log(results[i]);
-
             io.emit(channelName, JSON.stringify({
                 'msg': results[i].message,
-                'user': clients[results[i].user_id]
+                'user': clients[results[i].user_id],
+                'time': results[i].time
             }));
         }
     });
@@ -94,8 +92,6 @@ function saveMessage(msg){
         time: new Date()
     }, function(err, result) {
       if (err) throw err;
-
-      // console.log(result.insertId);
     });
 }
 
