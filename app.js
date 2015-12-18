@@ -8,13 +8,14 @@ var pack    = require('./package.json');
 var log     = require('./lib/log.js');
 var mysql   = require('mysql');
 var port    = 3000;
+var nbmsg   = 10;
 
 /* MySQL */
 var connection = mysql.createConnection({
     host     : 'localhost',
-    user     : 'me',
-    password : 'secret',
-    database : 'my_db'
+    user     : 'root',
+    password : '',
+    database : 'lastimport'
 });
 
 /* Express */
@@ -25,7 +26,6 @@ app.set('view engine', 'ejs');
 
 /* Variables */
 var clients = [];
-var messages = [];
 
 /* Routes */
 app.use(config.url, express.static(path.join(__dirname, 'public')));
@@ -59,11 +59,7 @@ io.on('connection', function(socket){
             'msg': msg.msg,
             'user': clients[msg.user.uid]
         }));
-        // inti empty channel
-        if (!messages[channelId]) {
-            messages[channelId] = [];
-        }
-        messages[channelId].push([msg]);
+        saveMessage(msg);
     });
 
     socket.on('init', function(content){
@@ -71,28 +67,41 @@ io.on('connection', function(socket){
         channelName = 'init' + infoInit.uid;
         channelId   = infoInit.channelId;
 
-        if (messages[channelId]) {
-            lastMessages = messages[channelId].slice(Math.max(messages[channelId].length - 5, 1));
-            for (var i = 0, len = lastMessages.length; i < len; i++) {
-                io.emit(channelName, JSON.stringify(lastMessages[i][0]));
-            }
-        }
+        messages = getMessages(channelId, channelName)
     });
 });
 
-function getMessages(channelId){
-    connection.connect();
-    connection.query('SELECT * FROM `books` WHERE `author` = "David"', function (error, results, fields) {
-      // error will be an Error if one occurred during the query
-      // results will contain the results of the query
-      // fields will contain information about the returned results fields (if any)
+function getMessages(channelId, channelName){
+    connection.query('SELECT channel_id, user_id, message, time FROM `sf_chat` WHERE `channel_id` = "'+ channelId +'" ORDER BY time DESC LIMIT 0, 10', function (error, results, fields) {
+        console.log(results.length);
+        for (var i = 0, len = results.length; i < len; i++) {
+            // console.log('emit to ' + channelName);
+            // console.log(results[i]);
+
+            io.emit(channelName, JSON.stringify({
+                'msg': results[i].message,
+                'user': clients[results[i].user_id]
+            }));
+        }
     });
 }
 
-function saveMessage(){
+function saveMessage(msg){
+    connection.query('INSERT INTO sf_chat SET ?', {
+        channel_id: msg.user.channelId,
+        user_id: msg.user.uid,
+        message: msg.msg,
+        time: new Date()
+    }, function(err, result) {
+      if (err) throw err;
 
+      // console.log(result.insertId);
+    });
 }
 
+function getUser(userId){
+    return clients[userId];
+}
 
 http.listen(port, function(){
     console.log('listening on *:' + port);
