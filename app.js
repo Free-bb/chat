@@ -37,11 +37,11 @@ var http = require('http').Server(app);
 var io   = require('socket.io')(http);
 
 io.use(function(socket, next){
-    userInformation = JSON.parse(socket.handshake.query.userInfo);
-    if (!userInformation.uid) {
-        next(new Error('Authentication error'));
-    }
-    clients[userInformation.uid] = userInformation;
+    // userInformation = JSON.parse(socket.handshake.query.userInfo);
+    // if (!userInformation.uid) {
+    //     next(new Error('Authentication error'));
+    // }
+    // clients[userInformation.uid] = userInformation;
     return next();
 });
 
@@ -57,7 +57,8 @@ io.on('connection', function(socket){
         channelName = 'message' + channelId;
         io.emit(channelName, JSON.stringify({
             'msg': msg.msg,
-            'user': clients[msg.user.uid]
+            'user': clients[msg.user.uid],
+            'time': new Date()
         }));
         saveMessage(msg);
     });
@@ -67,17 +68,25 @@ io.on('connection', function(socket){
         channelName = 'init' + infoInit.uid;
         channelId   = infoInit.channelId;
 
-        messages = getMessages(channelId, channelName)
+        messages = getMessages(channelId, channelName);
+    });
+
+    socket.on('newnotification', function(infos){
+        io.emit('newnotification' + infos.channelId, JSON.stringify(infos));
+    });
+
+    socket.on('personalNotification', function(infos){
+        io.emit('personalNotification' + infos.uid, JSON.stringify(infos));
     });
 });
 
 function getMessages(channelId, channelName){
-    connection.query('SELECT channel_id, user_id, message, time FROM `sf_chat` WHERE `channel_id` = "'+ channelId +'" ORDER BY time DESC LIMIT 0, 10', function (error, results, fields) {
+    connection.query('SELECT sf_chat.channel_id, sf_chat.user_id, sf_chat.message, sf_chat.time, fos_user.username, fos_user.avatar FROM sf_chat LEFT JOIN fos_user ON (sf_chat.user_id = fos_user.id) WHERE `channel_id` = "'+ channelId +'" ORDER BY time DESC LIMIT 0, 10', function (error, results, fields) {
         results = results.reverse();
         for (var i = 0, len = results.length; i < len; i++) {
             io.emit(channelName, JSON.stringify({
                 'msg': results[i].message,
-                'user': clients[results[i].user_id],
+                'user': {'uid': results[i].user_id, 'avatar': results[i].avatar, 'username': results[i].username},
                 'time': results[i].time
             }));
         }
@@ -93,10 +102,6 @@ function saveMessage(msg){
     }, function(err, result) {
       if (err) throw err;
     });
-}
-
-function getUser(userId){
-    return clients[userId];
 }
 
 http.listen(port, function(){
